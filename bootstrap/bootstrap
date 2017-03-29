@@ -592,7 +592,7 @@ _list(){
 }
 
 # where to deploy
-VALID_TARGETS="aws local"
+VALID_TARGETS="aws do local"
 # Infrakit plugins used for deployment
 VALID_PROVIDERS="aws docker terraform"
 # we can't run InfraKit in a container for these plugins
