@@ -85,11 +85,14 @@ _init_swarm() {
   local _manager
   local _loop=0
   local _maxloop=120
-  echo "initializing Docker" >&2
-  wget -qO- https://get.docker.com/ | sh && \
-  usermod -G docker ubuntu && \
-  systemctl enable docker.service && \
-  systemctl start docker.service && \
+  echo "initializing Docker"
+  wget -qO- https://get.docker.com/ | sh
+  id -u ubuntu 2>/dev/null
+  if [ $? -eq 0 ]; then
+    usermod -G docker ubuntu
+  fi
+  systemctl enable docker.service
+  systemctl start docker.service
   if [ -n "$1" ]; then
     _manager=$1
     echo "joining a Docker Swarm..." >&2
@@ -121,7 +124,7 @@ _init_swarm() {
   else
     echo "initializing Docker Swarm" >&2
     _expose_remote_api
-    docker swarm init
+    docker swarm init --advertise-addr $(ip a show dev eth0 2>/dev/null | grep inet | grep eth0 | tail -1 | sed -e 's/^.*inet.//g' -e 's/\/.*$//g')
   fi
 }
 
