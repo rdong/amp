@@ -15,15 +15,12 @@
           "Properties": {
             "type": "digitalocean_droplet",
             "value": {
-              "image": "${var.cluster_image}"
-              "name": "${var.do_name}"
-              "region": "${var.cluster_region}"
-              "size": "${var.cluster_size}"
-              "ssh_keys" "${var.cluster_ssh_key}"
-              "tags": {
-                SwarmRole = "worker"
-                Project = "${var.do_name}"
-              }
+              "image": "${var.do_image}",
+              "name": "${var.do_name}",
+              "region": "${var.do_region}",
+              "size": "${var.do_size}",
+              "ssh_keys": [ "${var.do_ssh_key}" ],
+              "tags": [ "worker", "${var.do_name}" ]
             }
           }
         },
@@ -35,7 +32,7 @@
                 "Plugin": "flavor-vanilla",
                 "Properties": {
                   "Init": [
-                    "#!/bin/bash",
+                    "#!/bin/bash"
                   ]
                 }
               }, {

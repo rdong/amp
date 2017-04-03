@@ -7,9 +7,7 @@ variable "do_token" {
 }
 
 variable "do_image" {
-  default = {
-    ubuntu = "ubuntu-16-04-x64"
-  }
+  default = "ubuntu-16-04-x64"
 }
 
 variable "do_name" {

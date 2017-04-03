@@ -199,7 +199,7 @@ EOF
 RUN mkdir -p $INFRAKIT_HOME/logs $INFRAKIT_HOME/plugins $INFRAKIT_HOME/configs
 VOLUME $INFRAKIT_HOME
 EOF
-      docker build -t $_dockerimage -f $_dockerfile $_d >/dev/null|| exit 1
+      docker build -t $_dockerimage -f $_dockerfile $_d >/dev/null || exit 1
       if [ -n "$envfile" ]; then rm "$_envfile"; fi
       docker volume inspect $BOOTSTRAP_VOLUME >/dev/null 2>&1
       if [ $? -eq 0 ]; then

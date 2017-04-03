@@ -6,7 +6,7 @@ data "template_file" "user_data_leader" {
   vars {
     tpl_config_base_url = "${var.infrakit_config_base_url}",
     tpl_infrakit_group_suffix = "${random_id.group_suffix.hex}",
-    tpl_image = "${lookup(var.do_image, "ubuntu")}",
+    tpl_image = "${var.do_image}",
     tpl_do_name = "${var.do_name}",
     tpl_region = "${var.do_region}",
     tpl_size = "${var.do_size}",
@@ -29,7 +29,7 @@ resource "random_id" "group_suffix" {
 }
 
 resource "digitalocean_droplet" "m1" {
-  image = "${lookup(var.do_image, "ubuntu")}"
+  image = "${var.do_image}"
   name = "${var.do_name}-manager1"
   region = "${var.do_region}"
   size = "${var.do_size}"
@@ -39,7 +39,7 @@ resource "digitalocean_droplet" "m1" {
   private_networking = "true"
 }
 resource "digitalocean_droplet" "m2" {
-  image = "${lookup(var.do_image, "ubuntu")}"
+  image = "${var.do_image}"
   name = "${var.do_name}-manager2"
   region = "${var.do_region}"
   size = "${var.do_size}"
@@ -48,7 +48,7 @@ resource "digitalocean_droplet" "m2" {
   user_data = "${data.template_file.user_data_manager.rendered}"
 }
 resource "digitalocean_droplet" "m3" {
-  image = "${lookup(var.do_image, "ubuntu")}"
+  image = "${var.do_image}"
   name = "${var.do_name}-manager3"
   region = "${var.do_region}"
   size = "${var.do_size}"

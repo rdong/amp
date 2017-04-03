@@ -14,10 +14,11 @@ write_files:
       {{ global "/script/baseurl" "${tpl_config_base_url}" }}
   - path: /tmp/terraform.tfvars
     content: |
+      do_image = "${tpl_image}"
       do_name = "${tpl_do_name}"
-      cluster_region = "${tpl_region}"
-      cluster_size = "${tpl_size}"
-      cluster_ssh_key = "${tpl_ssh_key}"
+      do_region = "${tpl_region}"
+      do_size = "${tpl_size}"
+      do_ssh_key = "${tpl_ssh_key}"
 runcmd:
   - curl ${tpl_config_base_url}/bootstrap -o /usr/local/bin/bootstrap.sh
-  - bash /usr/local/bin/bootstrap.sh -i -p terraform:/tmp/terraform.tfvars -t do -e /tmp/env.ikt ${tpl_config_base_url}
+  - bash /usr/local/bin/bootstrap.sh -1 -p terraform:/tmp/terraform.tfvars -t do -e /tmp/env.ikt ${tpl_config_base_url}
