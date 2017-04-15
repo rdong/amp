@@ -26,7 +26,7 @@ readonly clouddomainname="cloud.atomiq.io"
 # returns the target of the deployment: local or a cloud provider
 deployment_target() {
   local _target
-  _target=$(echo $(basename $0) | cut -d- -f2) 
+  _target=$(echo $(basename $0) | cut -d- -f2)
   if [ $? -ne 0 ] || [ "$_target" = "$(basename $0)" ]; then
     _target="local"
   fi
@@ -166,6 +166,14 @@ prepare_certificates() {
   $amps secret create "certificate_atomiq" /stacks/$name.pem
 }
 
+# pushes initial user token in a Docker secret
+set_account_initial_secret() {
+  echo "generating random initial account token"
+  docker run --rm alpine sh -c "< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c128" -- > $SP/../stacks/token
+  echo "creating the token secret"
+  $amps secret create "amp_account_token" /stacks/token
+}
+
 trap cleanup EXIT
 echo "$(deployment_target) deployment"
 if [ -z $CID ]; then
@@ -211,6 +219,11 @@ ok
 echo "wait for registry"
 $curlcheck "${registryhost}:5000/v2/" 200 180
 checkexit $? "registry timed out"
+ok
+
+set_account_initial_secret
+checkexit $? "amp account initial token error"
+rm $SP/../stacks/token
 ok
 
 echo "push images to cluster"
@@ -288,4 +301,3 @@ checkexit $? "service ping check failed: elasticsearch"
 ok "service ping check succeeded: elasticsearch"
 
 SUCCESS=1
-

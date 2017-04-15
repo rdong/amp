@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"fmt"
+
+	"github.com/appcelerator/amp/pkg/docker"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -18,7 +21,8 @@ const (
 var (
 	// TODO: this MUST NOT be public
 	// TODO: find a way to store this key secretly
-	secretKey = []byte("&kv@l3go-f=@^*@ush0(o5*5utxe6932j9di+ume=$mkj%d&&9*%k53(bmpksf&!c2&zpw$z=8ndi6ib)&nxms0ia7rf*sj9g8r4")
+	secretKey        = []byte{}
+	secretKeyDefault = []byte("&kv@l3go-f=@^*@ush0(o5*5utxe6932j9di+ume=$mkj%d&&9*%k53(bmpksf&!c2&zpw$z=8ndi6ib)&nxms0ia7rf*sj9g8r4")
 
 	anonymousAllowed = []string{
 		"/account.Account/SignUp",
@@ -37,6 +41,16 @@ var (
 		"/version.Version/Get",
 	}
 )
+
+func init() {
+	key, err := docker.GetSecret("account.token")
+	if err != nil {
+		fmt.Printf("Get account initial token using secret error: %v", err)
+		secretKey = secretKeyDefault
+	}
+	fmt.Println("Account inital token set")
+	secretKey = key
+}
 
 func isAnonymous(elem string) bool {
 	for _, e := range anonymousAllowed {

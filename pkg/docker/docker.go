@@ -2,6 +2,7 @@ package docker
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"os"
 
@@ -132,4 +133,13 @@ func (d *Docker) PullImage(ctx context.Context, image string) error {
 		os.Stdout.Fd(),
 		false,
 		nil)
+}
+
+// GetSecret get docker Secret data
+func GetSecret(name string) ([]byte, error) {
+	data, err := ioutil.ReadFile(fmt.Sprintf("/run/secret/%s", name))
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

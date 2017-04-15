@@ -1,4 +1,4 @@
-version: "3"
+version: "3.1"
 
 networks:
   default:
@@ -30,6 +30,11 @@ services:
         condition: on-failure
       placement:
         constraints: [node.role == manager]
+    secrets:
+      - source: account_token
+        target: account.token
+        mode: 0400
+        external: true
 
   agent:
     image: appcelerator/agent:local
