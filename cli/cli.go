@@ -110,7 +110,7 @@ func (c *cli) OnInitialize(initializers ...func()) {
 func (c *cli) Connect() (*grpc.ClientConn, error) {
 	if c.clientConn == nil {
 		var err error
-		c.clientConn, err = NewClientConn(c.Server(), GetToken())
+		c.clientConn, err = NewClientConn(c.Server(), GetToken(), true)
 		if err != nil {
 			// extra newline helpful for grpc errors
 			return nil, fmt.Errorf("\nunable to establish grpc connection: %s", err)
