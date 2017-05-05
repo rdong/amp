@@ -216,7 +216,7 @@ _set_source() {
   # if a remote location is provided, the configuration will be searched there
   if $(echo "$InfraKitConfigurationBaseURL" | grep -q "://"); then
     CONTAINER_CONFIG_TPL=$InfraKitConfigurationBaseURL/config.${provider}-${target}.tpl
-    CONTAINER_PLUGINS_CFG=$InfraKitConfigurationBaseURL/plugins.json
+    CONTAINER_PLUGINS_CFG=$InfraKitConfigurationBaseURL/plugins-${manager_plugin}.json
     # a new random temporary directory used as the source
     _d=$(mktemp -d)
     if [ "x$provider" = "xaws" ]; then
@@ -236,7 +236,7 @@ _set_source() {
     fi
   else
     CONTAINER_CONFIG_TPL=file://$INFRAKIT_HOME/config.${provider}-${target}.tpl
-    CONTAINER_PLUGINS_CFG=file://$INFRAKIT_HOME/plugins.json
+    CONTAINER_PLUGINS_CFG=file://$INFRAKIT_HOME/plugins-${manager_plugin}.json
     # the provided path, or just use the local directory as the source
     _d=${InfraKitConfigurationBaseURL:-$0}
     which realpath >/dev/null 2>&1
@@ -363,8 +363,10 @@ _get_client_certificate() {
 _run_ikt_container() {
   local _should_wait_for_plugins=0
   local _infrakit_image
-  docker run --rm -v $BOOTSTRAP_VOLUME:$INFRAKIT_HOME alpine:3.5 sh -c "echo 'group' >> $INFRAKIT_HOME/leader" || exit 1
 
+  if [ "$manager_plugin" == "os" ]; then
+    docker run --rm -v $BOOTSTRAP_VOLUME:$INFRAKIT_HOME alpine:3.5 sh -c "echo 'group' >> $INFRAKIT_HOME/leader" || exit 1
+  fi
   # remove old customized configuration just in case
   docker run --rm -v $BOOTSTRAP_VOLUME:$INFRAKIT_HOME alpine:3.5 sh -c "sed -i.bak 's/^{{ var \"\/script\/baseurl\".\*$//' $INFRAKIT_HOME/env.ikt" || exit 1
   local _extra_plugins=""
@@ -393,8 +395,8 @@ _run_ikt_container() {
     if [ $? -ne 0 ] && [ ! $(_am_i_in_a_container) ]; then
       local _ip
       _ip=$(_get_ip)
-      docker run --rm -v $BOOTSTRAP_VOLUME:$INFRAKIT_HOME alpine:3.5 sh -c "echo '{{ var \"/bootstrap/ip\" \"$_ip\" }}' >> $INFRAKIT_HOME/env.ikt" || exit 1
-      echo "bootstrap ip ($_ip) added in env.ikt" >&2 
+      docker run --rm -v $BOOTSTRAP_VOLUME:$INFRAKIT_HOME alpine:3.5 sh -c "echo '{{ global \"/bootstrap/ip\" \"$_ip\" }}' >> $INFRAKIT_HOME/env.ikt" || exit 1
+      echo "bootstrap ip ($_ip) added in env.ikt" >&2
     fi
     if [ "x$provider" = "xdocker" ]; then
         echo "making sure the network $BRIDGE_NETWORK is created" >&2
@@ -632,6 +634,7 @@ target=local
 default_target=1
 provider=docker
 default_provider=1
+manager_plugin=swarm
 envfile=""
 providerfile=""
 manager_count=1
@@ -735,6 +738,9 @@ trap _finish EXIT
 if [ "x$target" != "xlocal" ] && [ $default_provider -eq 1 ]; then
     provider=terraform
 fi
+if [ "x$target" == "xlocal" ] || [ "x$provider" == "xaws" ]; then
+    manager_plugin=os
+fi
 
 if [ -n "$status_request" ]; then
   _status $status_request
@@ -757,7 +763,6 @@ if [ $init_swarm -eq 1 ]; then
 fi
 if [ -n "$swarm_join_ip" ]; then
   _init_swarm $swarm_join_ip || exit 1
-  exit 0
 fi
 _set_source $1
 _set_size
@@ -775,8 +780,11 @@ if [ $started -gt 0 ]; then
   loop=1
   looplimit=10
   while [ $rc -ne 0 ]; do
-    docker exec infrakit infrakit manager inspect 2>&1 | grep -vq 'non-leader'
-    rc=$?
+    rc=0
+    if [ -z "$swarm_join_ip" ]; then
+      docker exec infrakit infrakit manager inspect 2>&1 | egrep -qe 'leader.*=.*true'
+      rc=$((rc+$?))
+    fi
     docker exec infrakit infrakit plugin ls 2>/dev/null | grep -q "instance-$provider"
     rc=$((rc+$?))
     docker exec infrakit infrakit instance --name=instance-$provider describe >/dev/null 2>&1
@@ -805,19 +813,21 @@ if [ $started -gt 0 ]; then
   done
   echo >&2
 fi
-_prepare_config_container
-_deploy_config_container
-if [ $block -gt 0 ]; then
-  rc=1
-  SECONDS=0
-  echo "waiting for cluster to be ready..." >&2
-  while [ $rc -ne 0 ]; do
-    _status $clusterid 2>/dev/null
-    rc=$?
-    if [ $SECONDS -gt $block ]; then
-      echo "cluster is still not ready after $block sec" >&2
-      exit 1
-    fi
-  done
+if [ -z "$swarm_join_ip" ]; then
+  _prepare_config_container
+  _deploy_config_container
+  if [ $block -gt 0 ]; then
+    rc=1
+    SECONDS=0
+    echo "waiting for cluster to be ready..." >&2
+    while [ $rc -ne 0 ]; do
+      _status $clusterid 2>/dev/null
+      rc=$?
+      if [ $SECONDS -gt $block ]; then
+        echo "cluster is still not ready after $block sec" >&2
+        exit 1
+      fi
+    done
+  fi
 fi
 echo done >&2
