@@ -13,6 +13,7 @@ import (
 	"github.com/appcelerator/amp/api/auth"
 	"github.com/appcelerator/amp/api/rpc/account"
 	"github.com/appcelerator/amp/api/rpc/stack"
+	"github.com/appcelerator/amp/api/rpc/stats"
 )
 
 type serverAPI struct {
@@ -63,6 +64,7 @@ func (s *serverAPI) handleAPIFunctions(r *mux.Router) {
 	r.HandleFunc("/api/v1/user/organizations", s.userOrganizations).Methods("POST")
 	r.HandleFunc("/api/v1/team/user/remove", s.removeUserFromTeam).Methods("POST")
 	r.HandleFunc("/api/v1/team/user/add", s.addUserToTeam).Methods("POST")
+	r.HandleFunc("/api/v1/stats", s.stats).Methods("POST")
 }
 
 func (s *serverAPI) setToken(r *http.Request) context.Context {
@@ -397,6 +399,33 @@ func (s *serverAPI) removeUserFromTeam(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "api.account.RemoveUserFromTeam server error", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(reply)
+}
+
+func (s *serverAPI) stats(w http.ResponseWriter, r *http.Request) {
+	log.Println("execute stats")
+
+	//parse request data
+	var err error
+	decoder := json.NewDecoder(r.Body)
+	var req stats.StatsRequest
+	defer r.Body.Close()
+	err = decoder.Decode(&req)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Printf("received: %+v\n", req)
+
+	client := stats.NewStatsClient(s.conn)
+	reply, err := client.StatsQuery(s.setToken(r), &req)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "api.stats.StatsQuery server error", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
