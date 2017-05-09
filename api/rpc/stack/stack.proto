@@ -24,7 +24,7 @@ service Stack {
   }
   rpc Services (ServicesRequest) returns (ServicesReply) {
     option (google.api.http) = {
-      get: "/v1/stacks/{stack}/services"
+      get: "/v1/stacks/{stack_name}/services"
     };
   }
 }
