@@ -43,9 +43,13 @@ services:
         io.amp.role: "infrastructure"
     environment:
       SERVICE_PORTS: "3333"
+<<<<<<< HEAD:platform/stacks/ampui.stack.yml
       VIRTUAL_HOST: "http://ui.*,https://ui.*"
       FORCE_SSL: 1
       LOCAL_ENDPOINT: "true"
       ENDPOINTS: "cloud.atomiq.io"
+=======
+      VIRTUAL_HOST: "https://ui.*"
+>>>>>>> origin/amp-ui-stats:stacks/ampui.stack.yml
     labels:
       io.amp.role: "infrastructure"
