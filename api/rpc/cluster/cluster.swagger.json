@@ -30,9 +30,32 @@
         "name": {
           "type": "string"
         },
-        "compose": {
+        "provider": {
+          "$ref": "#/definitions/clustersCloudProvider"
+        },
+        "organization_name": {
+          "type": "string"
+        },
+        "keypair_name": {
+          "type": "string"
+        },
+        "volume_size": {
           "type": "string",
-          "format": "byte"
+          "format": "int64"
+        },
+        "manager_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "worker_count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "registry_mirror": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -77,6 +100,24 @@
         "manager_leader": {
           "type": "boolean",
           "format": "boolean"
+        },
+        "docker_version": {
+          "type": "string"
+        },
+        "keypair_name": {
+          "type": "string"
+        },
+        "engine_labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "node_labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },
@@ -127,6 +168,17 @@
           "type": "string"
         }
       }
+    },
+    "clustersCloudProvider": {
+      "type": "string",
+      "enum": [
+        "ANY",
+        "AWS",
+        "DO",
+        "AZURE",
+        "GCP"
+      ],
+      "default": "ANY"
     }
   }
 }

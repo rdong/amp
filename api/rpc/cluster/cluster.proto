@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package cluster;
+import "github.com/appcelerator/amp/data/clusters/clusters.proto";
 
 service Cluster {
   rpc Create (CreateRequest) returns (CreateReply);
@@ -13,7 +14,13 @@ service Cluster {
 
 message CreateRequest {
   string name = 1;
-  bytes compose = 2;
+  clusters.CloudProvider provider = 2;
+  string organization_name = 3;
+  string keypair_name = 4;
+  int64 volume_size = 5;
+  int64 manager_count = 6;
+  int64 worker_count = 7;
+  repeated string registry_mirror = 8;
 }
 
 message CreateReply {
@@ -62,4 +69,8 @@ message NodeReply {
   string availability = 4;
   string role = 5;
   bool manager_leader = 6;
+  string docker_version = 7;
+  string keypair_name = 8;
+  map<string, string> engine_labels = 9;
+  map<string, string> node_labels = 10;
 }

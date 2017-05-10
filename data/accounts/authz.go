@@ -15,6 +15,7 @@ const (
 	OrganizationRN  = AmpResourceName + ":organization"
 	TeamRN          = AmpResourceName + ":team"
 	StackRN         = AmpResourceName + ":stack"
+	ClusterRN       = AmpResourceName + ":cluster"
 
 	CreateAction = "create"
 	ReadAction   = "read"

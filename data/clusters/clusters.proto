@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package clusters;
+
+import "github.com/appcelerator/amp/data/accounts/accounts.proto";
+
+enum CloudProvider {
+  ANY = 0;
+  AWS = 1;
+  DO = 2;
+  AZURE = 3;
+  GCP = 4;
+}
+
+message Cluster {
+  string id = 1;
+  string name = 2;
+  accounts.Account owner = 3;
+  CloudProvider provider = 4;
+  int64 create_dt = 5;
+}
