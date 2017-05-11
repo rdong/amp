@@ -1,5 +1,5 @@
-hash: 0ca5da7b548a7f7dee244d5232f249733dc829956442537d80966a68430b4c93
-updated: 2017-05-11T17:14:23.107925515Z
+hash: 3ebd3bc390a3da5a5b131b5b56f901748edeaab8243bd358ecff0529bf5bbcbc
+updated: 2017-05-11T17:24:36.822833005Z
 imports:
 - name: github.com/agl/ed25519
   version: 5312a61534124124185d41f09206b9fef1d88403
@@ -27,7 +27,7 @@ imports:
 - name: github.com/dgrijalva/jwt-go
   version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
 - name: github.com/docker/distribution
-  version: c3e06c6069653bf72034ed907d6749d3928fdacb
+  version: b38e5838b7b2f2ad48e06ec4b500011976080621
   subpackages:
   - context
   - digestset
@@ -42,7 +42,7 @@ imports:
   - registry/storage/cache/memory
   - uuid
 - name: github.com/docker/docker
-  version: c57fdb2a14cfba584686ddad909e3006284d10aa
+  version: 89658bed64c2a8fe05a978e5b87dbec409d57a0f
   subpackages:
   - api
   - api/types

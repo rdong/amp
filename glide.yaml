@@ -39,11 +39,11 @@ import:
 - package: github.com/dgrijalva/jwt-go
   version: ^3.0.0
 - package: github.com/docker/distribution
-  version: c3e06c6069653bf72034ed907d6749d3928fdacb
+  version: b38e5838b7b2f2ad48e06ec4b500011976080621
   subpackages:
   - reference
 - package: github.com/docker/docker
-  version: v17.05.0-ce-rc2
+  version: v17.05.0-ce
   subpackages:
   - api/types
   - api/types/container
