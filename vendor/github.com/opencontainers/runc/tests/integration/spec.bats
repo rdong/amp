@@ -26,7 +26,7 @@ function teardown() {
   [ ! -e config.json ]
 
   # test generation of spec does not return an error
-  runc_spec
+  runc spec
   [ "$status" -eq 0 ]
 
   # test generation of spec created our config.json (spec)
@@ -51,7 +51,7 @@ function teardown() {
   [ ! -e "$HELLO_BUNDLE"/config.json ]
 
   # test generation of spec does not return an error
-  runc_spec --bundle "$HELLO_BUNDLE"
+  runc spec --bundle "$HELLO_BUNDLE"
   [ "$status" -eq 0 ]
 
   # test generation of spec created our config.json (spec)
@@ -72,7 +72,7 @@ function teardown() {
   run git clone https://github.com/opencontainers/runtime-spec.git src/runtime-spec
   [ "$status" -eq 0 ]
 
-  SPEC_COMMIT=$(grep '^github.com/opencontainers/runtime-spec' ${TESTDIR}/../../vendor.conf | cut -d ' ' -f 2)
+  SPEC_COMMIT=$(grep runtime-spec ${TESTDIR}/../../vendor.conf | cut -d ' ' -f 2)
   run git -C src/runtime-spec reset --hard "${SPEC_COMMIT}"
 
   [ "$status" -eq 0 ]

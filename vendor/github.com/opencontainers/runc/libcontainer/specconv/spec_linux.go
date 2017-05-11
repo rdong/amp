@@ -145,7 +145,6 @@ type CreateOpts struct {
 	NoPivotRoot      bool
 	NoNewKeyring     bool
 	Spec             *specs.Spec
-	Rootless         bool
 }
 
 // CreateLibcontainerConfig creates a new libcontainer configuration from a
@@ -176,7 +175,6 @@ func CreateLibcontainerConfig(opts *CreateOpts) (*configs.Config, error) {
 		Hostname:     spec.Hostname,
 		Labels:       append(labels, fmt.Sprintf("bundle=%s", cwd)),
 		NoNewKeyring: opts.NoNewKeyring,
-		Rootless:     opts.Rootless,
 	}
 
 	exists := false
@@ -210,7 +208,7 @@ func CreateLibcontainerConfig(opts *CreateOpts) (*configs.Config, error) {
 	if err := setupUserNamespace(spec, config); err != nil {
 		return nil, err
 	}
-	c, err := createCgroupConfig(opts)
+	c, err := createCgroupConfig(opts.CgroupName, opts.UseSystemdCgroup, spec)
 	if err != nil {
 		return nil, err
 	}
@@ -266,14 +264,8 @@ func createLibcontainerMount(cwd string, m specs.Mount) *configs.Mount {
 	}
 }
 
-func createCgroupConfig(opts *CreateOpts) (*configs.Cgroup, error) {
-	var (
-		myCgroupPath string
-
-		spec             = opts.Spec
-		useSystemdCgroup = opts.UseSystemdCgroup
-		name             = opts.CgroupName
-	)
+func createCgroupConfig(name string, useSystemdCgroup bool, spec *specs.Spec) (*configs.Cgroup, error) {
+	var myCgroupPath string
 
 	c := &configs.Cgroup{
 		Resources: &configs.Resources{},
@@ -309,14 +301,9 @@ func createCgroupConfig(opts *CreateOpts) (*configs.Cgroup, error) {
 		c.Path = myCgroupPath
 	}
 
-	// In rootless containers, any attempt to make cgroup changes will fail.
-	// libcontainer will validate this and we shouldn't add any cgroup options
-	// the user didn't specify.
-	if !opts.Rootless {
-		c.Resources.AllowedDevices = allowedDevices
-		if spec.Linux == nil {
-			return c, nil
-		}
+	c.Resources.AllowedDevices = allowedDevices
+	if spec.Linux == nil {
+		return c, nil
 	}
 	r := spec.Linux.Resources
 	if r == nil {
@@ -353,10 +340,8 @@ func createCgroupConfig(opts *CreateOpts) (*configs.Cgroup, error) {
 		}
 		c.Resources.Devices = append(c.Resources.Devices, dd)
 	}
-	if !opts.Rootless {
-		// append the default allowed devices to the end of the list
-		c.Resources.Devices = append(c.Resources.Devices, allowedDevices...)
-	}
+	// append the default allowed devices to the end of the list
+	c.Resources.Devices = append(c.Resources.Devices, allowedDevices...)
 	if r.Memory != nil {
 		if r.Memory.Limit != nil {
 			c.Resources.Memory = *r.Memory.Limit
@@ -610,11 +595,11 @@ func setupUserNamespace(spec *specs.Spec, config *configs.Config) error {
 	for _, m := range spec.Linux.GIDMappings {
 		config.GidMappings = append(config.GidMappings, create(m))
 	}
-	rootUID, err := config.HostRootUID()
+	rootUID, err := config.HostUID()
 	if err != nil {
 		return err
 	}
-	rootGID, err := config.HostRootGID()
+	rootGID, err := config.HostGID()
 	if err != nil {
 		return err
 	}

@@ -84,7 +84,7 @@ import:
 - package: github.com/nats-io/go-nats-streaming
   version: ^0.3.4
 - package: github.com/ory-am/ladon
-  version: ^0.5.0
+  version: ~0.5.0
 - package: github.com/sendgrid/sendgrid-go
   version: ^3.3.1
   subpackages:

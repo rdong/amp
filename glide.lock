@@ -1,5 +1,5 @@
-hash: 72c41c23521584566879ab366c15c8a458e357013072463b3c5f3fc9ca51958d
-updated: 2017-05-01T11:58:18.757283295Z
+hash: 0ca5da7b548a7f7dee244d5232f249733dc829956442537d80966a68430b4c93
+updated: 2017-05-11T17:14:23.107925515Z
 imports:
 - name: github.com/agl/ed25519
   version: 5312a61534124124185d41f09206b9fef1d88403
@@ -133,7 +133,7 @@ imports:
 - name: github.com/docker/libtrust
   version: aabc10ec26b754e797f9028f4589c5b7bd90dc20
 - name: github.com/docker/notary
-  version: 3b3e77c4492a6b96a555da7abcd95cc0a1510ec2
+  version: 23eceed93e08fddf363972e72aced69f4c8c0e00
   subpackages:
   - client
   - client/changelist
@@ -149,7 +149,7 @@ imports:
   - tuf/utils
   - tuf/validation
 - name: github.com/docker/swarmkit
-  version: c82348250a0e11e85f42e395e48b18cab652b18e
+  version: f420c4b9e1535170fc229db97ee8ac32374020b1
   subpackages:
   - api
   - api/deepcopy
@@ -254,9 +254,12 @@ imports:
 - name: github.com/golang/protobuf
   version: 18c9bb3261723cd5401db4d0c9fbc5c3b6c70fe8
   subpackages:
+  - jsonpb
   - proto
+  - protoc-gen-go/descriptor
   - ptypes/any
   - ptypes/empty
+  - ptypes/struct
 - name: github.com/golang/snappy
   version: d9eb7a3d35ec988b8585d4a0068e462c27d28380
 - name: github.com/gorilla/context
@@ -268,10 +271,13 @@ imports:
   subpackages:
   - github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
   - github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+  - runtime
+  - runtime/internal
+  - utilities
 - name: github.com/hailocab/go-hostpool
   version: e80d13ce29ede4452c43dea11e79b9bc8a15b478
 - name: github.com/hashicorp/hcl
-  version: 7fa7fff964d035e8a162cce3a164b3ad02ad651b
+  version: 630949a3c5fa3c613328e1b8256052cbc2327c9b
   subpackages:
   - hcl/ast
   - hcl/parser
@@ -290,7 +296,7 @@ imports:
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmoiron/sqlx
-  version: d9bd385d68c068f1fabb5057e3dedcbcbb039d0f
+  version: 3564e3a314b957a161fefa0e7aea85b4d741c94e
   subpackages:
   - reflectx
 - name: github.com/joeshaw/multierror
@@ -317,7 +323,7 @@ imports:
 - name: github.com/mattn/go-shellwords
   version: 02e3cf038dcea8290e44424da473dd12be796a8a
 - name: github.com/Microsoft/go-winio
-  version: f3b1913901892ada21d52d0cffe1d4c7080d36b7
+  version: fff283ad5116362ca252298cfc9b95828956d85d
 - name: github.com/miekg/pkcs11
   version: 7283ca79f35edb89bc1b4ecae7f86a3680ce737f
 - name: github.com/mitchellh/go-homedir
@@ -325,7 +331,7 @@ imports:
 - name: github.com/mitchellh/hashstructure
   version: b098c52ef6beab8cd82bc4a32422cf54b890e8fa
 - name: github.com/mitchellh/mapstructure
-  version: cc8532a8e9a55ea36402aa21efdf403a60d34096
+  version: 53818660ed4955e899c0bcafa97299a388bd7c8e
 - name: github.com/nats-io/go-nats
   version: 61923ed1eaf8398000991fbbee2ef11ab5a5be0d
 - name: github.com/nats-io/go-nats-streaming
@@ -333,7 +339,7 @@ imports:
   subpackages:
   - pb
 - name: github.com/nats-io/nats
-  version: f3801cfe56be7d73e544dc3165758b6f4a316ca8
+  version: 6949c8e06a246e4177961aab22940b5c411e48f0
   subpackages:
   - encoders/builtin
   - util
@@ -348,7 +354,7 @@ imports:
 - name: github.com/opencontainers/go-digest
   version: aa2ec055abd10d26d539eb630a92241b781ce4bc
 - name: github.com/opencontainers/runc
-  version: efb2bc3fb0e36b2ec0d2c44b460bfc33a26a0bef
+  version: ef9a4b315558d31eae520725ff67383c2f79c3cb
   subpackages:
   - libcontainer/system
   - libcontainer/user
@@ -413,7 +419,7 @@ imports:
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: github.com/spf13/viper
-  version: 0967fc9aceab2ce9da34061253ac10fb99bba5b2
+  version: 5ed0fc31f7f453625df314d8e66b9791e8d13003
 - name: github.com/stretchr/testify
   version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
   subpackages:
@@ -426,7 +432,7 @@ imports:
 - name: github.com/xeipuuv/gojsonreference
   version: e02fc20de94c78484cd5ffb007f8af96be030a45
 - name: github.com/xeipuuv/gojsonschema
-  version: a55c211c418162597a32c74c7230f81adb5ad616
+  version: 702b404897d4364af44dc8dcabc9815947942325
 - name: golang.org/x/crypto
   version: 1351f936d976c60a0a48d728281922cf63eafb8d
   subpackages:
@@ -472,6 +478,7 @@ imports:
 - name: google.golang.org/genproto
   version: 411e09b969b1170a9f0c467558eb4c4c110d9c77
   subpackages:
+  - googleapis/api/annotations
   - googleapis/rpc/status
 - name: google.golang.org/grpc
   version: 0eb507a2ca07f13baf499f89d66cc566bf644643
@@ -516,7 +523,7 @@ imports:
   - hash/sha2crypt
   - hash/sha2crypt/raw
 - name: gopkg.in/olivere/elastic.v5
-  version: 6f76abde0f1f149b7d6fc47aee4c54366844f775
+  version: d401c698bf1e0f5f6c13a5388a79967f095836be
   subpackages:
   - uritemplates
 - name: gopkg.in/yaml.v2

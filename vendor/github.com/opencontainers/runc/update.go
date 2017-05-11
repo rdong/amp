@@ -108,10 +108,6 @@ other options are ignored.
 			Name:  "memory-swap",
 			Usage: "Total memory usage (memory + swap); set '-1' to enable unlimited swap",
 		},
-		cli.IntFlag{
-			Name:  "pids-limit",
-			Usage: "Maximum number of pids allowed in the container",
-		},
 	},
 	Action: func(context *cli.Context) error {
 		if err := checkArgs(context, 1, exactArgs); err != nil {
@@ -141,9 +137,6 @@ other options are ignored.
 			},
 			BlockIO: &specs.LinuxBlockIO{
 				Weight: u16Ptr(0),
-			},
-			Pids: &specs.LinuxPids{
-				Limit: 0,
 			},
 		}
 
@@ -235,7 +228,6 @@ other options are ignored.
 					*pair.dest = uint64(v)
 				}
 			}
-			r.Pids.Limit = int64(context.Int("pids-limit"))
 		}
 
 		// Update the value
@@ -252,7 +244,6 @@ other options are ignored.
 		config.Cgroups.Resources.Memory = *r.Memory.Limit
 		config.Cgroups.Resources.MemoryReservation = *r.Memory.Reservation
 		config.Cgroups.Resources.MemorySwap = *r.Memory.Swap
-		config.Cgroups.Resources.PidsLimit = r.Pids.Limit
 
 		return container.Set(config)
 	},

@@ -6,16 +6,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nats-io/gnatsd/test"
+	"github.com/nats-io/gnatsd/auth"
 	"github.com/nats-io/go-nats"
 )
 
 func TestAuth(t *testing.T) {
-	opts := test.DefaultTestOptions
-	opts.Port = 8232
-	opts.Username = "derek"
-	opts.Password = "foo"
-	s := RunServerWithOptions(opts)
+	s := RunServerOnPort(8232)
+
+	// Auth is pluggable, so need to set here..
+	auth := &auth.Plain{
+		Username: "derek",
+		Password: "foo",
+	}
+	s.SetClientAuthMethod(auth)
+
 	defer s.Shutdown()
 
 	_, err := nats.Connect("nats://localhost:8232")
@@ -50,11 +54,15 @@ func TestAuth(t *testing.T) {
 }
 
 func TestAuthFailNoDisconnectCB(t *testing.T) {
-	opts := test.DefaultTestOptions
-	opts.Port = 8232
-	opts.Username = "derek"
-	opts.Password = "foo"
-	s := RunServerWithOptions(opts)
+	s := RunServerOnPort(8232)
+
+	// Auth is pluggable, so need to set here..
+	auth := &auth.Plain{
+		Username: "derek",
+		Password: "foo",
+	}
+	s.SetClientAuthMethod(auth)
+
 	defer s.Shutdown()
 
 	copts := nats.DefaultOptions
@@ -83,11 +91,13 @@ func TestAuthFailAllowReconnect(t *testing.T) {
 		"nats://localhost:23234",
 	}
 
-	ots2 := test.DefaultTestOptions
-	ots2.Port = 23233
-	ots2.Username = "ivan"
-	ots2.Password = "foo"
-	ts2 := RunServerWithOptions(ots2)
+	ts2 := RunServerOnPort(23233)
+	// Auth is pluggable, so need to set here..
+	auth := &auth.Plain{
+		Username: "ivan",
+		Password: "foo",
+	}
+	ts2.SetClientAuthMethod(auth)
 	defer ts2.Shutdown()
 
 	ts3 := RunServerOnPort(23234)
@@ -134,11 +144,13 @@ func TestAuthFailAllowReconnect(t *testing.T) {
 }
 
 func TestTokenAuth(t *testing.T) {
-	opts := test.DefaultTestOptions
-	opts.Port = 8232
+	s := RunServerOnPort(8232)
+
 	secret := "S3Cr3T0k3n!"
-	opts.Authorization = secret
-	s := RunServerWithOptions(opts)
+	// Auth is pluggable, so need to set here..
+	auth := &auth.Token{Token: secret}
+	s.SetClientAuthMethod(auth)
+
 	defer s.Shutdown()
 
 	_, err := nats.Connect("nats://localhost:8232")

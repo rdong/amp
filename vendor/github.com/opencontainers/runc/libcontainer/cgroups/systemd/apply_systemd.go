@@ -426,7 +426,7 @@ func getSubsystemPath(c *configs.Cgroup, subsystem string) (string, error) {
 		return "", err
 	}
 
-	initPath, err := cgroups.GetInitCgroup(subsystem)
+	initPath, err := cgroups.GetInitCgroupDir(subsystem)
 	if err != nil {
 		return "", err
 	}

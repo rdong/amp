@@ -57,7 +57,6 @@ load helpers
   [ "$status" -eq 0 ]
   [[ ${lines[1]} =~ runc\ resume+ ]]
 
-  # We don't use runc_spec here, because we're just testing the help page.
   runc spec -h
   [ "$status" -eq 0 ]
   [[ ${lines[1]} =~ runc\ spec+ ]]

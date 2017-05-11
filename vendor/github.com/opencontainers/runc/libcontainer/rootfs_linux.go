@@ -19,9 +19,9 @@ import (
 	"github.com/mrunalp/fileutils"
 	"github.com/opencontainers/runc/libcontainer/cgroups"
 	"github.com/opencontainers/runc/libcontainer/configs"
+	"github.com/opencontainers/runc/libcontainer/label"
 	"github.com/opencontainers/runc/libcontainer/system"
 	libcontainerUtils "github.com/opencontainers/runc/libcontainer/utils"
-	"github.com/opencontainers/selinux/go-selinux/label"
 )
 
 const defaultMountFlags = syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV
@@ -348,7 +348,7 @@ func getCgroupMounts(m *configs.Mount) ([]*configs.Mount, error) {
 	var binds []*configs.Mount
 
 	for _, mm := range mounts {
-		dir, err := mm.GetOwnCgroup(cgroupPaths)
+		dir, err := mm.GetThisCgroupDir(cgroupPaths)
 		if err != nil {
 			return nil, err
 		}

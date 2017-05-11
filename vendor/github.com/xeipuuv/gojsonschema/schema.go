@@ -31,7 +31,6 @@ import (
 	"errors"
 	"reflect"
 	"regexp"
-	"text/template"
 
 	"github.com/xeipuuv/gojsonreference"
 )
@@ -40,9 +39,6 @@ var (
 	// Locale is the default locale to use
 	// Library users can overwrite with their own implementation
 	Locale locale = DefaultLocale{}
-
-	// ErrorTemplateFuncs allows you to define custom template funcs for use in localization.
-	ErrorTemplateFuncs template.FuncMap
 )
 
 func NewSchema(l JSONLoader) (*Schema, error) {

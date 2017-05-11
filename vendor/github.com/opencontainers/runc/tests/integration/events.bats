@@ -12,9 +12,6 @@ function teardown() {
 }
 
 @test "events --stats" {
-  # XXX: currently cgroups require root containers.
-  requires root
-
   # run busybox detached
   runc run -d --console-socket $CONSOLE_SOCKET test_busybox
   [ "$status" -eq 0 ]
@@ -30,9 +27,6 @@ function teardown() {
 }
 
 @test "events --interval default " {
-  # XXX: currently cgroups require root containers.
-  requires root
-
   # run busybox detached
   runc run -d --console-socket $CONSOLE_SOCKET test_busybox
   [ "$status" -eq 0 ]
@@ -60,9 +54,6 @@ function teardown() {
 }
 
 @test "events --interval 1s " {
-  # XXX: currently cgroups require root containers.
-  requires root
-
   # run busybox detached
   runc run -d --console-socket $CONSOLE_SOCKET test_busybox
   [ "$status" -eq 0 ]
@@ -89,9 +80,6 @@ function teardown() {
 }
 
 @test "events --interval 100ms " {
-  # XXX: currently cgroups require root containers.
-  requires root
-
   # run busybox detached
   runc run -d --console-socket $CONSOLE_SOCKET test_busybox
   [ "$status" -eq 0 ]

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/opencontainers/runc/libcontainer/configs"
-	selinux "github.com/opencontainers/selinux/go-selinux"
+	"github.com/opencontainers/runc/libcontainer/selinux"
 )
 
 type Validator interface {
@@ -39,11 +39,6 @@ func (v *ConfigValidator) Validate(config *configs.Config) error {
 	}
 	if err := v.sysctl(config); err != nil {
 		return err
-	}
-	if config.Rootless {
-		if err := v.rootless(config); err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -92,7 +87,7 @@ func (v *ConfigValidator) security(config *configs.Config) error {
 		!config.Namespaces.Contains(configs.NEWNS) {
 		return fmt.Errorf("unable to restrict sys entries without a private MNT namespace")
 	}
-	if config.ProcessLabel != "" && !selinux.GetEnabled() {
+	if config.ProcessLabel != "" && !selinux.SelinuxEnabled() {
 		return fmt.Errorf("selinux label is specified in config, but selinux is disabled or not supported")
 	}
 

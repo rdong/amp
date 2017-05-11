@@ -237,11 +237,6 @@ func newError(err ResultError, context *jsonContext, value interface{}, locale l
 	err.SetValue(value)
 	err.SetDetails(details)
 	details["field"] = err.Field()
-
-	if _, exists := details["context"]; !exists && context != nil {
-		details["context"] = context.String()
-	}
-
 	err.SetDescription(formatErrorDescription(d, details))
 }
 
@@ -261,10 +256,6 @@ func formatErrorDescription(s string, details ErrorDetails) string {
 	if tpl == nil {
 		errorTemplates.Lock()
 		tpl = errorTemplates.New(s)
-
-		if ErrorTemplateFuncs != nil {
-			tpl.Funcs(ErrorTemplateFuncs)
-		}
 
 		tpl, err = tpl.Parse(s)
 		errorTemplates.Unlock()
