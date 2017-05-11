@@ -284,7 +284,7 @@ func (s *Store) updateOrganization(ctx context.Context, in *Organization) error 
 	if err := in.Validate(); err != nil {
 		return err
 	}
-	if err := s.store.Put(ctx, path.Join(organizationsRootKey, in.Name), in, 0); err != nil {
+	if err := s.store.Update(ctx, path.Join(organizationsRootKey, in.Name), in, 0); err != nil {
 		return err
 	}
 	return nil
