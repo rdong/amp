@@ -119,6 +119,8 @@ import:
   - gzip
 - package: github.com/urfave/negroni
   version: ~0.2.0
+- package: github.com/aws/aws-sdk-go
+  version: ~v1.8.21
 testImport:
 - package: github.com/ThomasRooney/gexpect
 - package: github.com/mhale/smtpd

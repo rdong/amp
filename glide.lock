@@ -1,10 +1,12 @@
-hash: 3ebd3bc390a3da5a5b131b5b56f901748edeaab8243bd358ecff0529bf5bbcbc
-updated: 2017-05-11T17:24:36.822833005Z
+hash: 389a939d433c63c2341d0809ac712fdf4e85321d67a01c6d0aa8393bdeb10398
+updated: 2017-05-11T17:35:38.26466647Z
 imports:
 - name: github.com/agl/ed25519
   version: 5312a61534124124185d41f09206b9fef1d88403
   subpackages:
   - edwards25519
+- name: github.com/aws/aws-sdk-go
+  version: 49c7a5e645b5eca5aabd1fd6a676dbddaf7b2a1a
 - name: github.com/Azure/go-ansiterm
   version: fa152c58bc15761d0200cb75fe958b89a9d4888e
   subpackages:
