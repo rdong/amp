@@ -19,4 +19,5 @@
 {{ var "/docker/registry-cache/host" "registry-cache" }}
 {{ var "/docker/registry-cache/port" "5000" }}
 {{ var "/aws/stackname" "unset" }}
+{{ var "/aws/instancetype" "t2.medium" }}
 {{ var "/docker/label/cluster/key" "atomiq.clusterid" }}

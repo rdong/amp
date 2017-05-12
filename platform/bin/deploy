@@ -13,23 +13,21 @@ readonly SP="$(cd "$(dirname "$0")"; pwd -P)"
 readonly PLATFORMDIR="$(dirname $SP)"
 readonly BOOTSTRAPDIR="$PLATFORMDIR/bootstrap"
 readonly TESTSDIR="$PLATFORMDIR/tests"
-readonly terraformdir="$BOOTSTRAPDIR/terraform-aws"
 
 export PATH="$SP:$BOOTSTRAPDIR:$PATH"
 
 # commands
-readonly terraform="docker run --rm -v $HOME/.aws:/root/.aws:ro -v $terraformdir:/data --workdir=/data hashicorp/terraform"
+readonly awscli="docker run --rm -v $HOME/.aws:/root/.aws:ro -v $BOOTSTRAPDIR:$BOOTSTRAPDIR:ro cgswong/aws:latest aws"
 
 # IP range that should have access to the docker remote API
 readonly rapi_cidr="$(curl -sf ifconfig.co/ip)/32"
 readonly localdomainname="local.atomiq.io"
-readonly clouddomainname="cloud.atomiq.io"
 
 # returns the target of the deployment: local or a cloud provider
 deployment_target() {
   local _target
   _target=$(echo $(basename $0) | cut -d- -f2)
-  if [ $? -ne 0 ] || [ "$_target" = "$(basename $0)" ]; then
+  if [[ $? -ne 0 || "$_target" = "$(basename $0)" ]]; then
     _target="local"
   fi
   echo $_target
@@ -37,44 +35,64 @@ deployment_target() {
 
 # create the cluster and echo the cluster id
 cluster_create() {
-  case $(deployment_target) in
-  local)
+  local _clusterid
+  local _status
+  local _target
+  _target="$(deployment_target)"
+  case "$_target" in
+  local|aws)
     # async
-    if [ $# -eq 0 ]; then
-      bootstrap $BOOTSTRAP_OPTIONS -f
+    if [[ $# -eq 0 ]]; then
+      bootstrap $BOOTSTRAP_OPTIONS -t "$_target" -f
     else
-      bootstrap $BOOTSTRAP_OPTIONS -fi $1
+      bootstrap $BOOTSTRAP_OPTIONS -t "$_target" -fi $1
     fi ;;
-  aws)
-    # sync (modulo user data execution)
-    if [ $# -ne 0 ]; then
-      echo "cluster creation with id set is not available for this deployment target" >&2
-      return 1
-    fi
-    $terraform apply --var "cidr_remote_api=$rapi_cidr" /data >/dev/null || return 1
-    $terraform output -state=/data/terraform.tfstate cluster_id
-    ;;
   esac
 }
 
 # destroy the cluster
 cluster_destroy() {
-  case $(deployment_target) in
-  local)
-    bootstrap -d ;;
-  aws)
-    $terraform destroy /data;;
+  local _target
+  _target="$(deployment_target)"
+  case $_target in
+  local|aws)
+    bootstrap -t $_target -di $1 ;;
   esac
 }
 
 # status of cluster, expects the cluster id as argument
 # 0 means healthy
 cluster_status() {
-  case $(deployment_target) in
-  local)
-    bootstrap -s $1 >/dev/null 2>&1 ;;
-  aws)
-    $terraform output -state=/data/terraform.tfstate $cluster_id >/dev/null ;;
+  local _clusterid=$1
+  local _status
+  local _target
+  _target=$(deployment_target)
+  case $_target in
+  local|aws)
+    bootstrap -t $_target -s $_clusterid >/dev/null 2>&1 ;;
+  esac
+}
+
+# size of cluster, expects the cluster id as argument
+cluster_nodecount() {
+  local _clusterid=$1
+  local _target
+  local _count
+  _target=$(deployment_target)
+  case $_target in
+  local|aws)
+    _count=$(bootstrap -t $_target -l $_clusterid | wc -l)
+    if [[ $_count -gt 0 ]]; then
+      echo $_count
+      return 0
+    fi
+    echo "node count failed" >&2
+    bootstrap -t $_target -l $_clusterid >&2
+    return 1
+    ;;
+  *)
+    echo "unknown deployment target ($_target)" >&2
+    return 1 ;;
   esac
 }
 
@@ -109,18 +127,32 @@ set_deployment_variables(){
     domainname=$localdomainname
     ;;
   aws)
+    local awscf="$awscli --profile ${PROFILE:-default} --region ${REGION:-us-west-2} cloudformation"
+    local _clusterid
+    local _publicip
+    _clusterid="$CID"
+    echo "$CID" | grep -q "/" && _clusterid="$(echo $CID | awk -F/ '{print $2}')"
     # todo: use a secured remote API
-    dockerhost=$($terraform output -state=/data/terraform.tfstate leader_ip)
-    registryhost=$dockerhost
-    amps="TAG=$TAG REGISTRATION=$REGISTRATION docker -H $dockerhost"
-    stacks_path=stacks
-    domainname=$clouddomainname
+    dockerhost=$($awscf describe-stacks --stack-name $_clusterid --query 'Stacks[0].Outputs[?OutputKey==`PublicManagerHost`].OutputValue' --output text) || exit 1
+    # if the DNS name point to several engines, we need a single one to avoid strange CLI issues (run = 2 calls, create + start)
+    _publicip=$(docker -H "$dockerhost" node inspect self -f '{{.Spec.Labels.PublicIP}}')
+    [[ -n "$_publicip" && "$_publicip" != "<no value>" ]] && dockerhost=$_publicip
+    registryhost=$($awscf describe-stacks --stack-name $_clusterid --query 'Stacks[0].Outputs[?OutputKey==`MirrorRegistries`].OutputValue' --output text) || exit 1
+    # if a single registry is defined on this cluster, we'll push images on it
+    # else, we'll skip the image push
+    echo "$registryhost" | grep -q " " && registryhost=""
+    amps="docker -H $dockerhost"
+    stacks_path=$SP/../stacks
+    domainname=$DOMAIN
     # variable used in sub scripts
     export DOCKERHOST=$dockerhost
     ;;
   esac
+  registryurl=$(echo $registryhost | cut -d, -f1)
+  # if no scheme, add the default port
+  if echo $registryurl | grep -qv "://" && [[ -n "$registryurl" ]]; then registryurl=$registryurl:5000; fi
   echo "Docker host = $dockerhost"
-  echo "Docker registry = $registryhost"
+  echo "Docker registry = $registryurl"
 }
 
 checkexit() {
@@ -155,6 +187,7 @@ deploystack() {
 # can only use this once the swarm is ready
 lookup() {
   [[ -z $amps ]] && echo "error to use lookup before swarm is created" && return 1
+  echo $amps run --rm --network=ampnet appcelerator/alpine:3.5.2 nslookup $1 >&2
   $amps run --rm --network=ampnet appcelerator/alpine:3.5.2 nslookup $1
 }
 
@@ -190,10 +223,10 @@ prepare_certificates() {
   echo "checking if the certificate secret is already defined"
   $amps secret ls | grep -q "certificate_atomiq" && return 0
   echo "creating the certificate secret"
-  $amps secret create "certificate_atomiq" /stacks/$name.pem
+  $amps secret create "certificate_atomiq" "$stacks_path/$name.pem"
 }
 
-while getopts ":w:m:t:l:T:c:r:" opt; do
+while getopts ":w:m:t:l:T:c:r:g:n:" opt; do
   case $opt in
   w|m|t|l) # just pass it to the bootstrap script
     BOOTSTRAP_OPTIONS="$BOOTSTRAP_OPTIONS -${opt} $OPTARG"
@@ -206,6 +239,17 @@ while getopts ":w:m:t:l:T:c:r:" opt; do
     ;;
   c)
     CHECK=1
+    ;;
+  n) # domain for cluster deployment
+    BOOTSTRAP_OPTIONS="$BOOTSTRAP_OPTIONS -${opt} $OPTARG"
+    DOMAIN=$OPTARG
+    if [[ ! -f $SP/../stacks/${DOMAIN}.pem ]]; then
+      echo "can't find ${DOMAIN}.pem, abort" >&2
+      exit 1
+    fi
+    ;;
+  g) # region for cluster deployment
+    REGION=$OPTARG
     ;;
   esac
 done
@@ -220,7 +264,8 @@ if [ -z $CID ]; then
   echo "bootstrapping cluster"
   CID=$(cluster_create)
   checkexit $? "bootstrap failed"
-  echo $CID
+  [[ -n "$CID" ]]
+  checkexit $? "no cluster id"
 else
   cluster_status $CID || cluster_create $CID
   checkexit $? "bootstrap failed"
@@ -229,42 +274,30 @@ fi
 set_deployment_variables
 
 echo "wait for cluster"
-if [ $(deployment_target) = "local" ]; then
-  clustercheck $CID
-else
-  echo "Make sure ${registryhost}:5000 is declared as an insecure registry in your Docker settings"
-  echo "This script will need it in a moment"
-  clustersize=5
-  maxwait=560
-  SECONDS=0
-  while [ $($amps node ls -q | wc -l) -lt $clustersize ]; do
-    sleep 5
-    [ $SECONDS -gt $maxwait ] && break
-    if [ $((SECONDS % 20)) -eq 0 ]; then
-      echo "still waiting, $($amps node ls -q | wc -l) nodes on $clustersize"
-      echo "will timeout in $((maxwait - SECONDS))"
-    fi
-  done
-  [ $SECONDS -le $maxwait ]
-fi
+clustercheck -t 150 -p $(deployment_target) $CID
 checkexit $? "cluster timed out"
 ok
 
+typeset -i nodecount
+nodecount=$(cluster_nodecount $CID) || exit 1
+echo "cluster size is $nodecount"
+
 echo "wait for swarm mode"
-# todo: fix swarmcheck, it now checks the local swarm, not the one from the cluster
-swarmcheck 300
+swarmcheck -t 300 -c $nodecount
 checkexit $? "swarm mode timed out"
 ok
 
-echo "wait for registry"
-curlcheck "${registryhost}:5000/v2/" 200 180
-checkexit $? "registry timed out"
-ok
+if [[ -n "$registryhost" ]]; then
+  echo "wait for registry"
+  curlcheck "${registryurl}/v2/" 200 180
+  checkexit $? "registry timed out"
+  ok
+fi
 
 if [[ "$TAG" = "local" ]]; then
   echo "push images to cluster"
   for image in amplifier amplifier-gateway ampbeat agent; do
-    pushimage ${registryhost}:5000 appcelerator/${image}:${TAG:-local}
+    pushimage ${registryurl} appcelerator/${image}:${TAG:-local}
   done
 else
   echo "image push to cluster is ignored (tag=${TAG:-latest})"
@@ -292,7 +325,7 @@ servicescheck $maxwait
 checkexit $? "amp service replica checks timed out"
 ok
 
-prepare_certificates $domainname
+prepare_certificates "$domainname"
 if [[ $? -eq 0 ]]; then
   echo "deploy amp proxy stack to cluster"
   deploystack ampproxy.stack.yml amp
