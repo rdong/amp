@@ -10,6 +10,7 @@ type clusterOpts struct {
 	managers     int
 	workers      int
 	provider     string
+	organization string
 	name         string
 	tag          string
 	registration string
