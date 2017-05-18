@@ -7,6 +7,10 @@ import { Graph } from '../../models/graph.model';
 @Injectable()
 export class DashboardService {
     onNewData = new Subject();
+    x0 = 20
+    y0 = 20
+    w0 = 150
+    h0 = 100
 
   constructor(
     private httpService : HttpService,

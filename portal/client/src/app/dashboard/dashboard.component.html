@@ -42,6 +42,7 @@
     <div style="position:relative;overflow:hidden" class="graph-container panel panel-default">
       <div [style.height.px]="graphPanelHeight" [style.width.px]="graphPanelWidth" class="panel-body" style="padding-top:0px;padding-bottom:0px;margin-bottom:0px">
         <app-dgraph *ngFor="let graph of graphs"
+          graphMovable
           style="position:absolute"
           [style.left.px]="graph.x"
           [style.top.px]="graph.y"

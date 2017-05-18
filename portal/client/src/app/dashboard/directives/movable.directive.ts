@@ -1,36 +1,72 @@
-import { Input, HostListener, Directive, HostBinding } from '@angular/core';
+import { Directive, ElementRef, Renderer2, OnInit, HostListener, HostBinding } from '@angular/core';
 
 
 @Directive({
-  selector: '[appDraggable]'
+  selector: '[graphMovable]',
+  host: {
+		'(mousedown)': 'onMouseDown($event)',
+		'(document: mousemove)': 'onMouseMove($event)',
+		'(document: mouseup)': 'onMouseUp($event)',
+		'(keydown.ArrowUp)': 'onNudge($event)',
+		'(keydown.ArrowRight)': 'onNudge($event)',
+		'(keydown.ArrowDown)': 'onNudge($event)',
+		'(keydown.ArrowLeft)': 'onNudge($event)',
+		'(keyup.ArrowUp)': 'onNudge($event)',
+		'(keyup.ArrowRight)': 'onNudge($event)',
+		'(keyup.ArrowDown)': 'onNudge($event)',
+		'(keyup.ArrowLeft)': 'onNudge($event)'
+	}
 })
-export class MovableDirective {
-  constructor() {
+export class MovableDirective implements OnInit {
+  private keys: Array<number> = [37, 38, 39, 40];
+  private clienty0 = 0
+  private clientx0 = 0
+  private graphx0 = 0
+  private graphy0 = 0
+  private movable = false
+  private corner = 0
+
+  constructor(
+    private eRef : ElementRef,
+    private renderer : Renderer2) {
 
   }
 
-  @HostBinding('movable')
-  get movable() {
-    return true;
+  ngOnInit() {
   }
 
-  @Input()
-  /*
-  set appDraggable(options: DraggablOptions) {
-    if (options) {
-      this.options = options;
+  onMouseDown($event) {
+    this.movable = true
+    this.graphx0 = parseInt(this.eRef.nativeElement.style.left.replace('px', ''));
+    this.graphy0 = parseInt(this.eRef.nativeElement.style.top.replace('px', ''));
+    this.clientx0 = $event.clientX
+    this.clienty0 = $event.clientY
+  }
+
+  onMouseUp($event) {
+    this.movable = false
+  }
+
+  onMouseMove($event) {
+    if (this.movable) {
+		  this.eRef.nativeElement.style.left = (($event.clientX - this.clientx0) + this.graphx0) + 'px';
+      this.eRef.nativeElement.style.top = (($event.clientY - this.clienty0) + this.graphy0) + 'px';
     }
   }
-  */
 
-  //private options: DraggableOptions = {};
+  private onNudge($event) {
+		this.keys[$event.keyCode] = $event.type === 'keydown' ? 1 : 0;
 
-  @HostListener('dragstart', ['$event'])
-  onDragStart(event) {
-    //const { zone = 'zone', data = {} } = this.options;
+    let x = parseInt(this.eRef.nativeElement.style.left.replace('px', ''));
+    let y = parseInt(this.eRef.nativeElement.style.top.replace('px', ''));
 
-    //this.dragService.startDrag(zone);
+    x = x - this.keys[37] + this.keys[39];
+		y = y - this.keys[38] + this.keys[40];
 
-    //event.dataTransfer.setData('Text', JSON.stringify(data));
-  }
+    this.eRef.nativeElement.style.left = x + 'px';
+    this.eRef.nativeElement.style.top = y + 'px';
+
+	}
+
+
 }

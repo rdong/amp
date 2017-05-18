@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MenuService } from '../services/menu.service';
+import { DashboardService } from './services/dashboard.service';
 import { ActivatedRoute } from '@angular/router';
 import { AppWindow } from '../models/app-window.model';
 import { Graph } from '../models/graph.model';
@@ -16,10 +17,14 @@ export class DashboardComponent implements OnInit {
   periodRefreshLabel = "30 seconds"
   graphPanelHeight = 250
   graphPanelWidth = 500
+  x0 = 100
+  y0 = 100
+  w0 = 150
+  h0 = 100
 
   constructor(
     private menuService : MenuService,
-    //public metricsService : DashboardComponentService,
+    public dashboardService : DashboardService,
     private route: ActivatedRoute) {
   }
 
@@ -36,7 +41,7 @@ export class DashboardComponent implements OnInit {
   resizeGraphs(win : AppWindow) {
     //let cww = $('.graph-container').width()
     let cww = win.width-25-this.menuService.paddingLeftMenu
-    let chh = win.height- 200;
+    let chh = win.height- 220;
     //console.log("Window: "+win.width+","+win.height)
     //console.log("Container: "+cww+","+chh)
     this.graphPanelHeight = chh
@@ -48,7 +53,8 @@ export class DashboardComponent implements OnInit {
   }
 
   addGraph(type : string) {
-    this.graphs.push(new Graph(20, 20, 100, 100, type, [''], '',''))
+    this.x0 += 20
+    this.graphs.push(new Graph(this.x0, this.y0, this.w0, this.h0, type, [''], '',''))
   }
 
 }
