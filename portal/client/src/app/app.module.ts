@@ -17,6 +17,7 @@ import { DragService } from './services/drag.service';
 import { MetricsService } from './metrics/services/metrics.service';
 import { LogsService } from './logs/services/logs.service';
 import { NodesService } from './nodes/services/nodes.service';
+import { DashboardService } from './dashboard/services/dashboard.service';
 
 //Module
 import { AppRoutingModule} from './app-routing.module';
@@ -25,6 +26,7 @@ import { AppRoutingModule} from './app-routing.module';
 import { DropdownDirective } from './directives/dropdown.directive'
 import { DraggableDirective } from './directives/draggable.directive'
 import { DropTargetDirective } from './directives/drop-target.directive'
+import { MovableDirective } from './dashboard/directives/movable.directive'
 
 //components
 import { AppComponent } from './app.component';
@@ -53,6 +55,7 @@ import { TeamCreateComponent } from './organizations/organization/team/team-crea
 import { LinesComponent } from './metrics/graph/lines/lines.component';
 import { SettingsComponent } from './settings/settings/settings.component';
 import { ForgotComponent } from './auth/forgot/forgot.component';
+import { DGraphComponent } from './dashboard/dgraph/dgraph.component';
 
 @NgModule({
   declarations: [
@@ -60,6 +63,7 @@ import { ForgotComponent } from './auth/forgot/forgot.component';
     DropdownDirective,
     DraggableDirective,
     DropTargetDirective,
+    MovableDirective,
     //Components
     AppComponent,
     SignupComponent,
@@ -87,6 +91,7 @@ import { ForgotComponent } from './auth/forgot/forgot.component';
     LinesComponent,
     SettingsComponent,
     ForgotComponent,
+    DGraphComponent,
 
   ],
   imports: [
@@ -108,6 +113,7 @@ import { ForgotComponent } from './auth/forgot/forgot.component';
     MetricsService,
     LogsService,
     NodesService,
+    DashboardService,
     AuthGuard
   ],
   bootstrap: [AppComponent]

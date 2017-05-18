@@ -1,1 +1,55 @@
 
+
+<div class="row">
+  <div class="col-lg-12 col-md-12 col-xs-12">
+    <div class="panel panel-default" style="border-style:none;margin-bottom:5px">
+      <div class="panel-body" style="padding:05px 20px 5px 20px;margin-top:5px">
+        <div class="pull-left"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> {{ dashboardName }}</div>
+      </div>
+      <div class="panel-body" style="padding:5px 20px 5px 20px">
+        <div class="col-lg-12 col-md-12 col-xs-12">
+          <div class="btn dropdown" style="padding-left:2px;padding-right:2px">
+            <button class="dropdown btn btn-primary dropdown-toggle" type="button" id="refreshperiod" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+              Refresh: {{ periodRefreshLabel }}
+              <span class="caret" style="cursor:pointer;color:white"></span>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="refreshperiod">
+              <li><a (click)="setRefreshPeriod('10 sec','10s')">10 sec</a></li>
+              <li><a (click)="setRefreshPeriod('30 sec','30s')">30 sec</a></li>
+              <li><a (click)="setRefreshPeriod('1 min','1m')">1 min</a></li>
+              <li><a (click)="setRefreshPeriod('2 min','2m')">2 min</a></li>
+              <li><a (click)="setRefreshPeriod('5 min','5m')">5 min</a></li>
+              <li><a (click)="setRefreshPeriod('10 min', '10m')">10 min</a></li>
+              <li><a (click)="setRefreshPeriod('30 min','30m')">30 min</a></li>
+              <li><a (click)="setRefreshPeriod('1 hour','1h')">1 hour</a></li>
+            </div>
+          </div>
+          <div class="btn dropdown" style="padding-left:2px;padding-right:2px">
+            <button class="dropdown btn btn-primary dropdown-toggle" type="button" id="refreshperiod" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+              Add
+              <span class="caret" style="cursor:pointer;color:white"></span>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="refreshperiod">
+              <li><a (click)="addGraph('lines')">Lines</a></li>
+              <li><a (click)="addGraph('areas')">Areas</a></li>
+              <li><a (click)="addGraph('pie')">Pie</a></li>
+              <li><a (click)="addGraph('...')">...</a></li>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="position:relative;overflow:hidden" class="graph-container panel panel-default">
+      <div [style.height.px]="graphPanelHeight" [style.width.px]="graphPanelWidth" class="panel-body" style="padding-top:0px;padding-bottom:0px;margin-bottom:0px">
+        <app-dgraph *ngFor="let graph of graphs"
+          style="position:absolute"
+          [style.left.px]="graph.x"
+          [style.top.px]="graph.y"
+          [style.width.px]="graph.width"
+          [style.height.px]="graph.height"
+          [graph] = "graph">
+        </app-dgraph>
+      </div>
+    </div>
+  </div>
+</div>
