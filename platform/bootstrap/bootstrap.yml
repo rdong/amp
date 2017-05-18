@@ -339,7 +339,7 @@ Resources:
         ToPort: '2375'
       VpcId:
         Ref: Vpc
-  ProvisionerRole:
+  ManagerRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -352,7 +352,7 @@ Resources:
             - ec2.amazonaws.com
         Version: '2012-10-17'
       Path: /
-  ProvisionerPolicies:
+  ManagerPolicies:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -362,7 +362,6 @@ Resources:
           - 'ec2:Get*'
           - 'ec2:CreateTags'
           - 'autoscaling:Describe*'
-          - 'autoscaling:CreateOrUpdateTags'
           Resource: '*'
           Effect: Allow
         - Action:
@@ -373,7 +372,9 @@ Resources:
           - 'ec2:TerminateInstances'
           - 'ec2:AttachVolume'
           - 'ec2:DetachVolume'
-          - 'autoscaling:*'
+          - 'autoscaling:Create*'
+          - 'autoscaling:Delete*'
+          - 'autoscaling:Update*'
           Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/*'
           Condition:
             StringEquals:
@@ -387,10 +388,13 @@ Resources:
           - 'ec2:TerminateInstances'
           - 'ec2:AttachVolume'
           - 'ec2:DetachVolume'
+          - 'autoscaling:Create*'
+          - 'autoscaling:Delete*'
+          - 'autoscaling:Update*'
           Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
           Condition:
             StringEquals:
-              "ec2:InstanceProfile": !Sub "arn:aws:iam::${AWS::AccountId}:instance-profile/${ClusterInstanceProfile}"
+              "ec2:InstanceProfile": !Sub "arn:aws:iam::${AWS::AccountId}:instance-profile/${ManagerInstanceProfile}"
           Effect: Allow
         - Action:
           - 'ec2:RunInstances'
@@ -404,19 +408,19 @@ Resources:
           Effect: Allow
         - Action:
           - 'iam:PassRole'
-          Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${ClusterRole}'
+          Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${ManagerRole}'
           Effect: Allow
         Version: '2012-10-17'
-      PolicyName: provisioner-policy
+      PolicyName: manager-policy
       Roles:
-      - Ref: ProvisionerRole
-  ProvisionerInstanceProfile:
+      - Ref: ManagerRole
+  ManagerInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
       Roles:
-      - Ref: ProvisionerRole
-  ClusterRole:
+      - Ref: ManagerRole
+  WorkerRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -429,7 +433,7 @@ Resources:
             - ec2.amazonaws.com
         Version: '2012-10-17'
       Path: /
-  ClusterPolicies:
+  WorkerPolicies:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -445,13 +449,13 @@ Resources:
         Version: '2012-10-17'
       PolicyName: cluster-policy
       Roles:
-      - Ref: ClusterRole
-  ClusterInstanceProfile:
+      - Ref: WorkerRole
+  WorkerInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: /
       Roles:
-      - Ref: ClusterRole
+      - Ref: WorkerRole
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     DependsOn:
@@ -494,11 +498,11 @@ Resources:
   AsgLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     DependsOn:
-      - ProvisionerInstanceProfile
+      - ManagerInstanceProfile
       - SecurityGroup
     Properties:
       AssociatePublicIpAddress: true
-      IamInstanceProfile: !Ref ProvisionerInstanceProfile
+      IamInstanceProfile: !Ref ManagerInstanceProfile
       ImageId:
         Fn::FindInMap:
         - AMI
@@ -534,8 +538,8 @@ Resources:
                     {{ var "/aws/subnetid3" "${PublicSubnet3}" }}
                     {{ var "/aws/securitygroupid" "${SecurityGroup}" }}
                     {{ var "/aws/amiid" "${ami}" }}
-                    {{ var "/aws/instancetype" "${ManagerInstanceType}"}}
-                    {{ var "/aws/instanceprofile" "${ClusterInstanceProfile}" }}
+                    {{ var "/aws/instancetype" "${WorkerInstanceType}"}}
+                    {{ var "/aws/instanceprofile" "${WorkerInstanceProfile}" }}
                     {{ var "/aws/keyname" "${KeyName}" }}
                     {{ var "/script/baseurl" "${InfraKitConfigurationBaseURL}" }}
                     {{ var "/docker/aufs/size" "${AufsVolumeSize}" }}

@@ -8,25 +8,37 @@
       "ID": "amp-worker-{{ var "/aws/vpcid" }}",
       "Properties": {
         "Allocation": {
-          "Size": {{ $workerSize }}
+          "Size": 1
         },
         "Instance": {
-          "Plugin": "instance-aws/ec2-instance",
+          "Plugin": "instance-aws/autoscalinggroup-autoscalinggroup",
           "Properties": {
-            "RunInstancesInput": {
+            "CreateAutoScalingGroupInput": {
+              "DesiredCapacity": {{ $workerSize }},
+              "HealthCheckGracePeriod": "200",
+              "HealthCheckType": "EC2",
+              "LaunchConfigurationName": "{{ var "/aws/stackname" }}-LaunchConfiguration",
+              "MaxSize": "5",
+              "MinSize": "0",
+              "Tags": {
+                "Name": "{{ var "/aws/stackname" }}-worker",
+                "Deployment": "Infrakit",
+                "Role" : "worker"
+              },
+              "VPCZoneIdentifier": [ "{{ var "/aws/subnetid1" }}", "{{ var "/aws/subnetid1" }}", "{{ var "/aws/subnetid1" }}" ]
+            }
+          }
+        },
+        "Instance": {
+          "Plugin": "instance-aws/autoscalinggroup-launchconfiguration",
+          "Properties": {
+            "CreateLaunchConfigurationInput": {
+              "AssociatePublicIpAddress": "true",
+              "IamInstanceProfile": "{{ var "/aws/instanceprofile" }}",
               "ImageId": "{{ var "/aws/amiid" }}",
               "InstanceType": "{{ var "/aws/instancetype" }}",
               "KeyName": "{{ var "/aws/keyname" }}",
-              "SubnetId": "{{ var "/aws/subnetid1" }}",
-              {{ if var "/aws/instanceprofile" }}"IamInstanceProfile": {
-                "Name": "{{ var "/aws/instanceprofile" }}"
-              },{{ end }}
-              "SecurityGroupIds": [ "{{ var "/aws/securitygroupid" }}" ]
-            },
-            "Tags": {
-              "Name": "{{ var "/aws/stackname" }}-worker",
-              "Deployment": "Infrakit",
-              "Role" : "worker"
+              "SecurityGroups": [ "{{ var "/aws/securitygroupid" }}" ]
             }
           }
         },
