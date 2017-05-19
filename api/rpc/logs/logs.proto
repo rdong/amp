@@ -31,6 +31,7 @@ message LogEntry {
   string node_id = 10;
   map<string, string> labels = 11;
   string msg = 12;
+  
 }
 
 message GetRequest {
