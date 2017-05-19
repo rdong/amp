@@ -342,6 +342,13 @@ deploy_stacks() {
   checkexit "amp monitoring stage 2 service replica checks timed out"
   ok
 
+  echo "deploy portal stack to cluster"
+  deploystack portal.stack.yml amp
+  echo "wait for all portal service replicas to be running ($maxwait sec)"
+  servicescheck $maxwait
+  checkexit "portal service replica checks timed out"
+  ok
+
   prepare_amplifier_configuration
   checkexit "secret creation for amplifier failed"
   echo "deploy amp stack to cluster"

@@ -8,7 +8,7 @@ networks:
 
 services:
 
-  amp-ui:
+  portal:
     image: appcelerator/amp-ui:1.0.0
     networks:
       - default
